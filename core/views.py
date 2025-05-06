@@ -3,9 +3,13 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+from pos_project.choices import EstadoEntidades
+from .cart import Cart
 import uuid
 
-from .models import Articulo, GrupoArticulo, LineaArticulo, ListaPrecios
+from .models import Articulo, CanalCliente, GrupoArticulo, LineaArticulo, ListaPrecios,Cliente, TipoIdentificacion,Vendedor,EstadoOrden,OrdenCompraCliente,ItemOrdenCompraCliente
 from .forms import ArticuloForm, ListaPrecioForm  # Necesitaras esos forms
 
 @login_required
@@ -48,11 +52,36 @@ def articulo_detail(request, articulo_id):
     """Vista para ver el detalle de un artículo"""
     articulo = get_object_or_404(Articulo, articulo_id=articulo_id)
 
+    # Guardar en el historial de productos visitados
+    if 'viewed_products' not in request.session:
+        request.session['viewed_products'] = []
+
+    # Convertir UUID a string para guardar en la sesión
+    producto_actual = str(articulo.articulo_id)
+    viewed_products = request.session['viewed_products']
+
+    # Eliminar si ya existe y añadir al principio
+    if producto_actual in viewed_products:
+        viewed_products.remove(producto_actual)
+
+    # Añadir al principio y mantener solo los últimos 5
+    viewed_products.insert(0, producto_actual)
+    request.session['viewed_products'] = viewed_products[:5]
+    request.session.modified = True
+
+    # Obtener productos visitados recientemente
+    recent_products = []
+    if viewed_products:
+        recent_uuids = [uuid.UUID(id_str) for id_str in viewed_products[1:6]]
+    #Excluir el actual
+        if recent_uuids:
+            recent_products = Articulo.objects.filter(articulo_id__in=recent_uuids)
+    
     context = {
         'articulo': articulo,
+        'recent_products': recent_products,
     }
     return render(request, 'core/articulos/detail.html', context)
-
 @login_required
 def articulo_create(request):
     """Vista para crear un nuevo artículo"""
@@ -128,3 +157,142 @@ def get_lineas_por_grupo(request, grupo_id):
     lineas = LineaArticulo.objects.filter(grupo_id=grupo_id, estado=1)
     data = [{'id': str(linea.linea_id), 'nombre': linea.nombre_linea} for linea in lineas]
     return JsonResponse(data, safe=False)
+
+
+
+
+@require_POST
+def cart_add(request, articulo_id):
+    """
+    Añadir artículo al carrito
+    """
+    cart = Cart(request)
+    articulo = get_object_or_404(Articulo, articulo_id=articulo_id)
+    cantidad = int(request.POST.get('cantidad', 1))
+    update = request.POST.get('update')
+
+    cart.add(articulo=articulo, cantidad=cantidad, update_cantidad=update)
+    messages.success(request, f'"{articulo.descripcion}" añadido al carrito.')
+
+    return redirect('cart_detail')
+
+def cart_remove(request, articulo_id):
+    """
+    Eliminar artículo del carrito
+    """
+    cart = Cart(request)
+    articulo = get_object_or_404(Articulo, articulo_id=articulo_id)
+    cart.remove(articulo)
+    messages.info(request, f'"{articulo.descripcion}" eliminado del carrito.')
+
+    return redirect('cart_detail')
+
+def cart_detail(request):
+    """
+    Ver detalle del carrito
+    """
+    cart = Cart(request)
+    return render(request, 'core/cart/detail.html', {'cart': cart})
+
+def cart_clear(request):
+    """
+    Vaciar el carrito
+    """
+    cart = Cart(request)
+    cart.clear()
+    messages.info(request, 'Carrito vaciado correctamente.')
+
+    return redirect('cart_detail')
+
+@login_required
+def checkout(request):
+    """
+    Finalizar compra
+    """
+    cart = Cart(request)
+    if len(cart) == 0:
+        messages.warning(request, 'Tu carrito está vacío')
+        return redirect('cart_detail')
+
+    # Obtener o crear cliente para el usuario
+    try:
+        cliente = Cliente.objects.get(correo_electronico=request.user.email)
+    except Cliente.DoesNotExist:
+        try:
+            tipo_id = TipoIdentificacion.objects.first()
+            canal = CanalCliente.objects.first()
+
+            # Crear cliente con datos básicos del usuario
+            cliente = Cliente.objects.create(
+                cliente_id=uuid.uuid4(),
+                tipo_identificacion=tipo_id,
+                nro_documento=request.user.username[:11],  # Ejemplo simplificado
+                nombres=request.user.full_name,
+                correo_electronico=request.user.email,
+                canal=canal,
+                estado=EstadoEntidades.ACTIVO
+            )
+        except:
+            messages.error(request, 'Error al procesar el cliente. Contacte al administrador.')
+            return redirect('cart_detail')
+
+    # Obtener vendedor predeterminado para la orden
+    try:
+        vendedor = Vendedor.objects.first()
+    except:
+        messages.error(request, 'No hay vendedores disponibles. Contacte al administrador.')
+        return redirect('cart_detail')
+
+    if request.method == 'POST':
+        # Crear la orden
+        try:
+            orden = OrdenCompraCliente.objects.create(
+                pedido_id=uuid.uuid4(),
+                cliente=cliente,
+                vendedor=vendedor,
+                estado=EstadoOrden.PENDIENTE,
+                notas=request.POST.get('notas', ''),
+                creado_por=request.user
+            )
+
+            # Crear los items de la orden
+            for item in cart:
+                articulo = item['articulo']
+                ItemOrdenCompraCliente.objects.create(
+                    item_id=uuid.uuid4(),
+                    pedido=orden,
+                    nro_item=1,  # Puedes implementar una secuencia
+                    articulo=articulo,
+                    cantidad=item['cantidad'],
+                    precio_unitario=item['precio'],
+                    creado_por=request.user
+                )
+
+            # Limpiar el carrito
+            cart.clear()
+
+            messages.success(request, f'¡Orden creada exitosamente! Tu número de orden es: {orden.pedido_id}')
+            return redirect('order_detail', pedido_id=orden.pedido_id)
+
+        except Exception as e:
+            messages.error(request, f'Error al procesar la orden: {str(e)}')
+            return redirect('cart_detail')
+
+    return render(request, 'core/cart/checkout.html', {
+        'cart': cart,
+        'cliente': cliente
+    })
+
+@login_required
+def order_detail(request, pedido_id):
+    """
+    Ver detalle de una orden
+    """
+    orden = get_object_or_404(OrdenCompraCliente, pedido_id=pedido_id)
+
+    # Verificar que la orden pertenece al usuario actual
+    if orden.cliente.correo_electronico != request.user.email and not request.user.is_staff:
+        messages.error(request, 'No tienes permiso para ver esta orden.')
+        return redirect('home')
+
+    return render(request, 'core/cart/order_detail.html', {'orden': orden})

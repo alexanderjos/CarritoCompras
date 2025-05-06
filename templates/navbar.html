@@ -18,7 +18,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="articulosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-box me-1"></i>Artículos</a>
                     <ul class="dropdown-menu" aria-labelledby="articulosDropdown">
-                        <li><a class="dropdown-item" href="#">Lista de Artículos</a></li>
+                        <li><a class="dropdown-item {% if request.path == '/' %}active{% endif %}" href="{% url 'articulos_list' %}">Lista de Artículos</a></li>
                         <li><a class="dropdown-item" href="#">Nuevo Artículo</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#">Grupos de Artículos</a></li>

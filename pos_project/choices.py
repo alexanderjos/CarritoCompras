@@ -3,3 +3,8 @@ from django.db import models
 class EstadoEntidades(models.IntegerChoices):
     ACTIVO = 1, "Activo"
     DE_BAJA = 9, "De baja"
+class EstadoOrden(models.IntegerChoices):
+    PENDIENTE = 1, "Pendiente"
+    EN_PROCESO = 2, "Procesando"
+    CERRADO = 3, "Completado"
+    ANULADO = 4, "Cancelada"

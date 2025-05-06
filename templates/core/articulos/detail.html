@@ -179,7 +179,24 @@ vendrían del backend -->
       <div class="card-header bg-white">
         <h5 class="mb-0">Acciones Rápidas</h5>
       </div>
+
       <div class="card-body">
+        <form action="{% url 'cart_add' articulo.articulo_id %}" method="post" class="mb-3">
+          {% csrf_token %}
+          <div class="input-group mb-3">
+            <span class="input-group-text">Cantidad</span>
+            <input 
+              type="number" 
+              name="cantidad" 
+              value="1" 
+              min="1" 
+              class="form-control" 
+            />
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-cart-plus me-1"></i>Añadir al Carrito
+            </button>
+          </div>
+        </form>
         <div class="d-grid gap-2">
           <button class="btn btn-success">
             <i class="fas fa-plus-circle me-2"></i>Añadir Stock
@@ -200,5 +217,27 @@ vendrían del backend -->
       </div>
     </div>
   </div>
+  {% if recent_products %}
+  <div class="card shadow mt-4">
+      <div class="card-header bg-white">
+          <h5 class="mb-0">Vistos recientemente</h5>
+      </div>
+      <div class="card-body">
+          <div class="row">
+              {% for product in recent_products %}
+              <div class="col-md-3 mb-2">
+                  <div class="card">
+                      <div class="card-body p-2">
+                          <h6 class="card-title small">{{ product.descripcion|truncatechars:25 }}</h6>
+                          <p class="card-text text-primary mb-1">${{ product.listaprecio.precio_1 }}</p>
+                          <a href="{% url 'articulo_detail' articulo_id=product.articulo_id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                      </div>
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+      </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
