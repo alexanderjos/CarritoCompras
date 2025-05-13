@@ -204,3 +204,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_SECURE = False # Cambiar a True en producción con HTTPS
 # Motor de almacenamiento de sesiones
 SESSION_ENGINE = 'django.contrib.sessions.backends.db' # Almacenar en la base de datos
+
+
+# Configuración de Email 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
+EMAIL_HOST = 'smtp.gmail.com'  # O tu proveedor SMTP 
+EMAIL_PORT = 587 
+EMAIL_USE_TLS = True 
+EMAIL_HOST_USER = 'tu-email@gmail.com' 
+EMAIL_HOST_PASSWORD = 'tu-contraseña-o-clave-de-app' 
+DEFAULT_FROM_EMAIL = 'Sistema POS <tu-email@gmail.com>'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 

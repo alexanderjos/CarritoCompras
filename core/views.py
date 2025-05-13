@@ -12,6 +12,17 @@ import uuid
 from .models import Articulo, CanalCliente, GrupoArticulo, LineaArticulo, ListaPrecios,Cliente, TipoIdentificacion,Vendedor,EstadoOrden,OrdenCompraCliente,ItemOrdenCompraCliente
 from .forms import ArticuloForm, ListaPrecioForm  # Necesitaras esos forms
 
+
+
+
+from django.core.mail import send_mail, EmailMultiAlternatives 
+from django.template.loader import render_to_string 
+from django.utils.html import strip_tags 
+from django.conf import settings
+
+
+
+
 @login_required
 def home(request):
     """Vista para la página principal"""
@@ -38,7 +49,7 @@ def articulos_list(request):
         articulos_list = articulos_list.filter(descripcion__icontains=q)
 
     # Paginación
-    paginator = Paginator(articulos_list, 15)
+    paginator = Paginator( articulos_list, 15)
     page_number = request.GET.get('page')
     articulos = paginator.get_page(page_number)
 
@@ -270,12 +281,13 @@ def checkout(request):
 
             # Limpiar el carrito
             cart.clear()
-
+            send_order_confirmation_email(orden)
             messages.success(request, f'¡Orden creada exitosamente! Tu número de orden es: {orden.pedido_id}')
             return redirect('order_detail', pedido_id=orden.pedido_id)
 
         except Exception as e:
             messages.error(request, f'Error al procesar la orden: {str(e)}')
+            messages.warning(request, f'Orden creada pero no se pudo enviar el email de confirmación: {str(e)}')
             return redirect('cart_detail')
 
     return render(request, 'core/cart/checkout.html', {
@@ -296,3 +308,75 @@ def order_detail(request, pedido_id):
         return redirect('home')
 
     return render(request, 'core/cart/order_detail.html', {'orden': orden})
+
+@login_required
+def articulos_catalogo(request):
+    """Vista para el catálogo con paginación infinita"""
+    return render(request, 'core/articulos/list_infinite.html')
+
+
+
+@login_required
+def articulo_create(request):
+    if request.method == 'POST':
+        form = ArticuloForm(request.POST)
+        precio_form = ListaPrecioForm(request.POST)
+        if form.is_valid() and precio_form.is_valid():
+            try:
+                # Generar ID para el artículo
+                articulo = form.save(commit=False)
+                articulo.articulo_id = uuid.uuid4()
+                articulo.save()
+
+                # Guardar precios
+                lista_precio = precio_form.save(commit=False)
+                lista_precio.articulo = articulo
+                lista_precio.save()
+
+                messages.success(request, f'¡Artículo "{articulo.descripcion}" creado correctamente!')
+                return redirect('articulo_detail', articulo_id=articulo.articulo_id)
+            except Exception as e:
+                messages.error(request, f'Error al crear el artículo: {str(e)}')
+        else:
+            messages.warning(request, 'Por favor corrija los errores en el formulario.')
+    else:
+        form = ArticuloForm()
+        precio_form = ListaPrecioForm()
+
+    context = {
+        'form': form,
+        'precio_form': precio_form,
+    }
+    return render(request, 'core/articulos/form.html', context)
+
+
+def send_order_confirmation_email(orden):
+    """
+    Enviar email de confirmación de orden
+    """
+    subject = f'Confirmación de Orden #{orden.nro_pedido}'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = orden.cliente.correo_electronico
+
+    # Renderizar el cuerpo del email en HTML
+    html_content = render_to_string('emails/order_confirmation.html', {
+        'orden': orden,
+        'items': orden.items_orden_compra.all(),
+    })
+
+    # Versión de texto plano
+    text_content = strip_tags(html_content)
+
+    # Crear el mensaje
+    email = EmailMultiAlternatives(
+        subject,
+        text_content,
+        from_email,
+        [to_email]
+    )
+
+    # Adjuntar versión HTML
+    email.attach_alternative(html_content, "text/html")
+
+    # Enviar el email
+    email.send()

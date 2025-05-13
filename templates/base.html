@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
+
 <body>
   <!-- Navbar -->
   {% include 'navbar.html' %}
@@ -23,17 +25,40 @@
   <!-- Contenido principal -->
   <main class="container py-4">
     {% if messages %}
-      <div class="messages">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     {% block content %}{% endblock %}
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="alert 
+        {% if message.tags == 'debug' %}alert-secondary{% endif %}
+        {% if message.tags == 'info' %}alert-info{% endif %}
+        {% if message.tags == 'success' %}alert-success{% endif %}
+        {% if message.tags == 'warning' %}alert-warning{% endif %}
+        {% if message.tags == 'error' %}alert-danger{% endif %}
+        alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+          {% if message.tags == 'debug' %}<i class="fas fa-bug me-2"></i>{% endif %}
+          {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2"></i>{% endif %}
+          {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2"></i>{% endif %}
+          {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2"></i>{% endif %}
+          {% if message.tags == 'error' %}<i class="fas fa-times-circle me-2"></i>{% endif %}
+          <div>{{ message }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
   </main>
 
   <!-- Footer -->
@@ -58,4 +83,5 @@
   <script src="{% static 'js/main.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
+
 </html>
