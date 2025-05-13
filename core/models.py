@@ -130,7 +130,7 @@ class ListaPrecios(models.Model):
 
 class OrdenCompraCliente(models.Model):
     pedido_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    nro_pedido = models.BigAutoField(unique=True,null=False,auto_created=True)
+    nro_pedido = models.BigIntegerField(unique=True, null=False)
     fecha_pedido = models.DateField(auto_now_add=True, null=False)
     cliente = models.ForeignKey(Cliente, on_delete=models.RESTRICT, null=False)
     vendedor = models.ForeignKey(Vendedor, on_delete=models.RESTRICT, null=False)
