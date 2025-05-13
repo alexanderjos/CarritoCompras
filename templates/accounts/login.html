@@ -26,8 +26,7 @@
                         <label for="id_username" class="form-label">Nombre de
                             usuario</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="fas
-fa-user"></i></span>
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
                             <input type="text" name="username" id="id_username" class="form-control"
                                 placeholder="Ingrese su usuario" required autofocus>
                         </div>
@@ -50,11 +49,20 @@ fa-user"></i></span>
 
                     <div class="d-grid mb-3">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar
-                            Sesión
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                         </button>
                     </div>
-
+                    <div class="text-center my-3"> 
+                        <p class="text-muted">O inicia sesión con</p> 
+                        <div class="d-flex justify-content-center gap-2"> 
+                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger"> 
+                                <i class="fab fa-google me-2"></i>Google 
+                            </a> 
+                            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary"> 
+                                <i class="fab fa-facebook-f me-2"></i>Facebook 
+                            </a> 
+                        </div> 
+                    </div>
                     <input type="hidden" name="next" value="{{ next }}">
                 </form>
 
