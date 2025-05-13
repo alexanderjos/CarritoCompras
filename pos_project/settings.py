@@ -40,12 +40,12 @@ INSTALLED_APPS = [
     'core',
     'accounts',
     # ...
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',
+    # 'django.contrib.sites',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.google',
+    # 'allauth.socialaccount.providers.facebook',
     # ...
 
 ]
@@ -59,56 +59,56 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
         # ... middleware existentes
-    'django.contrib.sites.middleware.CurrentSiteMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
+    # 'django.contrib.sites.middleware.CurrentSiteMiddleware',
+    # 'allauth.account.middleware.AccountMiddleware',
 ]
-AUTHENTICATION_BACKENDS = [
- # Needed to login by username in Django admin
- 'django.contrib.auth.backends.ModelBackend',
- # `allauth` specific authentication methods
- 'allauth.account.auth_backends.AuthenticationBackend',
+# AUTHENTICATION_BACKENDS = [
+#  # Needed to login by username in Django admin
+#  'django.contrib.auth.backends.ModelBackend',
+#  # `allauth` specific authentication methods
+#  'allauth.account.auth_backends.AuthenticationBackend',
  
-]
+# ]
 
-SITE_ID = 1
-# Auth settings
-AUTH_USER_MODEL = 'accounts.Usuario' # Asegúrate de que está correctamente configurado
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
-# Allauth settings
-ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+# SITE_ID = 1
+# # Auth settings
+# AUTH_USER_MODEL = 'accounts.Usuario' # Asegúrate de que está correctamente configurado
+# LOGIN_REDIRECT_URL = 'home'
+# LOGOUT_REDIRECT_URL = 'login'
+# # Allauth settings
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_USERNAME_REQUIRED = True
+# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+# ACCOUNT_EMAIL_VERIFICATION = 'optional'
 
-# Social providers settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': 'tu-client-id-de-google',
-            'secret': 'tu-secret-de-google',
-            'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    },
-    'facebook': {
-        'APP': {
-            'client_id': 'tu-client-id-de-facebook',
-            'secret': 'tu-secret-de-facebook',
-            'key': ''
-        },
-        'METHOD': 'oauth2',
-        'SCOPE': ['email', 'public_profile'],
-        'VERIFIED_EMAIL': True,
-    }
-}
+# # Social providers settings
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'APP': {
+#             'client_id': 'tu-client-id-de-google',
+#             'secret': 'tu-secret-de-google',
+#             'key': ''
+#         },
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         }
+#     },
+#     'facebook': {
+#         'APP': {
+#             'client_id': 'tu-client-id-de-facebook',
+#             'secret': 'tu-secret-de-facebook',
+#             'key': ''
+#         },
+#         'METHOD': 'oauth2',
+#         'SCOPE': ['email', 'public_profile'],
+#         'VERIFIED_EMAIL': True,
+#     }
+# }
 ROOT_URLCONF = 'pos_project.urls'
 
 TEMPLATES = [

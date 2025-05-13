@@ -18,7 +18,7 @@ urlpatterns = [
     # Incluir URLs de apps
     path('accounts/', include('accounts.urls')),
     path('core/', include('core.urls')),
-    path('accounts/', include('allauth.urls')),  # URLs para allauth 
+    #path('accounts/', include('allauth.urls')),  # URLs para allauth 
 
 ]
 
